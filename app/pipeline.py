@@ -11,8 +11,9 @@ from app.modules.m7_changes.rules import apply as stage7
 def sample_text():
     return (Path(__file__).parent.parent/"sample_data"/"instrument.csv").read_text(encoding="utf-8-sig")
 
-def run(text):
-    ctx={"text":text,"quarantine":[],"reports":[]}
+def execute(text, frozen=None):
+    """跑完整管线并保留 Decimal 级中间结果，供排程与补正复用。"""
+    ctx={"text":text,"quarantine":[],"reports":[],"frozen":frozen or {}}
     ctx["reports"].append(stage1(ctx))
     ctx["reports"].append(stage2(ctx))
     ctx["reports"].append(stage3(ctx))
@@ -20,6 +21,12 @@ def run(text):
     ctx["reports"].append(stage5(ctx))
     ctx["reports"].append(stage6(ctx))
     ctx["reports"].append(stage7(ctx))
-    ctx.pop("text",None)
     ctx["reasons"]=reason_counts(ctx)
+    ctx.pop("text",None)
+    return ctx
+
+def finish(ctx):
     return plain(ctx)
+
+def run(text, frozen=None):
+    return finish(execute(text, frozen))

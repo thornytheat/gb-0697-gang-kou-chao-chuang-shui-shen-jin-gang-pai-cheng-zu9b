@@ -13,6 +13,11 @@ app=FastAPI(title='港口潮窗水深与进港排程')
 app.mount("/static",StaticFiles(directory=Path(__file__).parent/"static"),name="static")
 templates=Jinja2Templates(directory=Path(__file__).parent/"templates")
 templates.env.filters["utc_instant"]=display_full
+import csv as _csv, io as _io
+FIELDS="id kind start end value aux version unit".split()
+def _csvrow(row):
+    out=_io.StringIO();_csv.writer(out,lineterminator="").writerow([row.get(f,"") for f in FIELDS]);return out.getvalue()
+templates.env.filters["csvrow"]=_csvrow
 MODULES=['潮位接收', '船舶条件', '水深求窗', '航道冲突', '引航排程', '计划对账', '变更复核']
 for n,slug in enumerate(['tides', 'vessels', 'windows', 'channel', 'schedule', 'balance', 'changes'],1):
     app.include_router(importlib.import_module(f"app.modules.m{n}_{slug}.handler").router)
@@ -39,6 +44,19 @@ def calculate(payload:object=Body(default=None)):
 def list_runs(): return store.history()
 @app.get("/api/runs/{ident}")
 def run_detail(ident:str): return store.get(ident)
+@app.post("/api/publish")
+def publish(payload:object=Body(...)):
+    payload=object_payload(payload)
+    if not isinstance(payload.get("id"),str): raise BusinessError("PUBLISH","批次编号须为文本")
+    if type(payload.get("revision")) is not int: raise BusinessError("REVISION","版本须为整数")
+    return store.publish(payload["id"],payload["revision"])
+@app.post("/api/correct")
+def correct(payload:object=Body(...)):
+    payload=object_payload(payload)
+    if not isinstance(payload.get("id"),str): raise BusinessError("CORRECTION","批次编号须为文本")
+    if type(payload.get("revision")) is not int: raise BusinessError("REVISION","版本须为整数")
+    if not isinstance(payload.get("text"),str): raise BusinessError("TEXT","补正内容须为文本")
+    return store.correct(payload["id"],payload["revision"],payload["text"])
 @app.post("/api/review")
 def review(payload:object=Body(...)):
     payload=object_payload(payload)

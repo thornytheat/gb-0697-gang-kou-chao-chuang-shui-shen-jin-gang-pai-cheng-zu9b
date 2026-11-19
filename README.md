@@ -30,6 +30,8 @@ docker compose config --quiet
 
 CSV可用UTF-8或GB18030；上传保留字符串编号和物理行号。POST `/api/run` 接收 `text` 字段。`GET /api/runs` 查询历史，`POST /api/review` 接收 id、revision、decision。导出按钮下载唯一证据CSV，含运行摘要与隔离记录。
 
+船舶吃水未核实等无法解析的申请进入待定区，页面对每艘船给出“已排程 / 无安全窗 / 待定区”去向。值班长可先发布计划（冻结已排船位），再在待定区逐船补正；补正只影响这些船，前后差异与冻结清单进入页面和证据CSV。同一批次重跑不会重复占道。
+
 SQLite命名卷保存运行记录。重建演示数据可更换卷名后重启。无需外部网络数据。规则定义见 `docs/DATA-DICTIONARY.md`；边界和测试对应关系见 `docs/DEPTH.md`。
 
 ## 范围

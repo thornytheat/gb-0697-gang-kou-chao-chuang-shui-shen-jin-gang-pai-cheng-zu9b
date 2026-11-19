@@ -5,6 +5,10 @@ def version_changed(old,new):
     if new<=old:raise ValueError("修订版本必须递增")
     return new-old
 
+def destination(row):
+    if row["status"]=="SCHEDULED":return "已排程"
+    return "无安全窗"
+
 def apply(ctx):
     changes=[]
     for effective in ctx["effective"]:
@@ -14,6 +18,9 @@ def apply(ctx):
     ctx["change_log"]=changes
     final=[]
     for r in ctx["checked"]:
-        x=dict(r);x["start"]=display(r["start_s"]) if r["start_s"] is not None else "未安排";x["end"]=display(r["end_s"]) if r["end_s"] is not None else "未安排";final.append(x)
-    ctx["final"]=final;ctx["blocked"]=bool(ctx["conflicts"]) or any(r["status"]!="SCHEDULED" for r in final)
-    return report(changes,修订=sum(r["status"]=="REPLACED" for r in changes),待复核=len(final),结论="阻断" if ctx["blocked"] else "可复核")
+        x=dict(r);x["start"]=display(r["start_s"]) if r["start_s"] is not None else "未安排";x["end"]=display(r["end_s"]) if r["end_s"] is not None else "未安排"
+        x["destination"]=destination(x);final.append(x)
+    ctx["final"]=final
+    ctx["blocked"]=bool(ctx["conflicts"]) or any(r["status"]!="SCHEDULED" for r in final)
+    pending=ctx.get("pending",[])
+    return report(changes,修订=sum(r["status"]=="REPLACED" for r in changes),待复核=len(final),待定=len(pending),结论="阻断" if ctx["blocked"] else "可复核")

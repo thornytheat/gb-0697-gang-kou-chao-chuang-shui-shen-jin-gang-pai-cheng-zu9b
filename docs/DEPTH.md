@@ -27,6 +27,9 @@
 | TRAP-14 | 同版冲突 | 静默采信错误值 | 隔离冲突 | `app/modules/m1_tides/rules.py` | `tests/test_tides.py::test_tides_duplicate` |
 | TRAP-23 | 相邻端点 | 静默采信错误值 | 半开区间 | `app/modules/m4_channel/rules.py` | `tests/test_channel.py::test_channel_end` |
 | TRAP-25 | 旧修订 | 静默采信错误值 | 拒绝陈旧版本 | `app/modules/m7_changes/rules.py` | `tests/test_changes.py::test_change_stale` |
+| TRAP-31 | 吃水未核实 | 空值船舶被丢弃或占深水窗 | 整船待定并保留原行 | `app/modules/m2_vessels/rules.py`、`app/pending.py` | `tests/test_pending.py::test_unverified_ship_kept_in_pending_with_reason_and_source_line` |
+| TRAP-32 | 发布后补正 | 重排冲掉已发布船位 | 冻结已排船位，只补待定船 | `app/store.py`、`app/modules/m5_schedule/rules.py` | `tests/test_pending.py::test_correction_only_touches_pending_and_keeps_published_slots` |
+| TRAP-33 | 补正中断重试 | 重复占用航道或叠加轮次 | 版本冲突409、同内容幂等 | `app/store.py` | `tests/test_pending.py::test_correction_stale_revision_keeps_pending` |
 
 ## 对账规则
 
